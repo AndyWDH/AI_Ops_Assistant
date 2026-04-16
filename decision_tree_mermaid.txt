@@ -1,0 +1,61 @@
+graph TD
+        node0[节点 0<br/>total_assets ≤ 0.555?<br/>基尼系数: 0.273]
+        node0 -->|是| node1
+        node0 -->|否| node14
+        node1[节点 1<br/>total_assets ≤ 0.518?<br/>基尼系数: 0.006]
+        node1 -->|是| node2
+        node1 -->|否| node7
+        node2[节点 2<br/>financial_balance ≤ 1.119?<br/>基尼系数: 0.001]
+        node2 -->|是| node3
+        node2 -->|否| node6
+        node3[节点 3<br/>total_assets ≤ 0.485?<br/>基尼系数: 0.001]
+        node3 -->|是| node4
+        node3 -->|否| node5
+        node4[叶节点 4<br/>类别: 非高价值客户<br/>非高价值概率: 1.000<br/>高价值概率: 0.000]:::非高价值客户Class
+        node5[叶节点 5<br/>类别: 非高价值客户<br/>非高价值概率: 0.915<br/>高价值概率: 0.085]:::非高价值客户Class
+        node6[叶节点 6<br/>类别: 高价值客户<br/>非高价值概率: 0.000<br/>高价值概率: 1.000]:::高价值客户Class
+        node7[节点 7<br/>monthly_income ≤ 1.371?<br/>基尼系数: 0.417]
+        node7 -->|是| node8
+        node7 -->|否| node11
+        node8[节点 8<br/>credit_card_monthly_expense ≤ 2.138?<br/>基尼系数: 0.315]
+        node8 -->|是| node9
+        node8 -->|否| node10
+        node9[叶节点 9<br/>类别: 非高价值客户<br/>非高价值概率: 0.835<br/>高价值概率: 0.165]:::非高价值客户Class
+        node10[叶节点 10<br/>类别: 高价值客户<br/>非高价值概率: 0.000<br/>高价值概率: 1.000]:::高价值客户Class
+        node11[节点 11<br/>lifecycle_stage_价值客户 ≤ 0.500?<br/>基尼系数: 0.308]
+        node11 -->|是| node12
+        node11 -->|否| node13
+        node12[叶节点 12<br/>类别: 高价值客户<br/>非高价值概率: 0.111<br/>高价值概率: 0.889]:::高价值客户Class
+        node13[叶节点 13<br/>类别: 非高价值客户<br/>非高价值概率: 0.667<br/>高价值概率: 0.333]:::非高价值客户Class
+        node14[节点 14<br/>total_assets ≤ 0.592?<br/>基尼系数: 0.024]
+        node14 -->|是| node15
+        node14 -->|否| node22
+        node15[节点 15<br/>monthly_income ≤ 0.613?<br/>基尼系数: 0.423]
+        node15 -->|是| node16
+        node15 -->|否| node19
+        node16[节点 16<br/>monthly_income ≤ -0.477?<br/>基尼系数: 0.499]
+        node16 -->|是| node17
+        node16 -->|否| node18
+        node17[叶节点 17<br/>类别: 非高价值客户<br/>非高价值概率: 0.900<br/>高价值概率: 0.100]:::非高价值客户Class
+        node18[叶节点 18<br/>类别: 高价值客户<br/>非高价值概率: 0.404<br/>高价值概率: 0.596]:::高价值客户Class
+        node19[节点 19<br/>fund_balance ≤ 0.036?<br/>基尼系数: 0.117]
+        node19 -->|是| node20
+        node19 -->|否| node21
+        node20[叶节点 20<br/>类别: 非高价值客户<br/>非高价值概率: 1.000<br/>高价值概率: 0.000]:::非高价值客户Class
+        node21[叶节点 21<br/>类别: 高价值客户<br/>非高价值概率: 0.043<br/>高价值概率: 0.957]:::高价值客户Class
+        node22[节点 22<br/>fund_balance ≤ -0.017?<br/>基尼系数: 0.003]
+        node22 -->|是| node23
+        node22 -->|否| node26
+        node23[节点 23<br/>insurance_balance ≤ 0.515?<br/>基尼系数: 0.211]
+        node23 -->|是| node24
+        node23 -->|否| node25
+        node24[叶节点 24<br/>类别: 非高价值客户<br/>非高价值概率: 0.667<br/>高价值概率: 0.333]:::非高价值客户Class
+        node25[叶节点 25<br/>类别: 高价值客户<br/>非高价值概率: 0.045<br/>高价值概率: 0.955]:::高价值客户Class
+        node26[节点 26<br/>occupation_type_传统行业 ≤ 0.500?<br/>基尼系数: 0.001]
+        node26 -->|是| node27
+        node26 -->|否| node28
+        node27[叶节点 27<br/>类别: 高价值客户<br/>非高价值概率: 0.000<br/>高价值概率: 1.000]:::高价值客户Class
+        node28[叶节点 28<br/>类别: 高价值客户<br/>非高价值概率: 0.250<br/>高价值概率: 0.750]:::高价值客户Class
+    
+    classDef 高价值客户Class fill:#d4edda,stroke:#c3e6cb,stroke-width:2px;
+        classDef 非高价值客户Class fill:#f8d7da,stroke:#f5c6cb,stroke-width:2px;

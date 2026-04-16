@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>可视化大屏</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #666;
+        }
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+        .chart-item {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        .chart-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-align: center;
+            color: #333;
+        }
+        .chart {
+            width: 100%;
+            height: 400px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>客户经营数据大屏</h1>
+        <div class="chart-grid">
+            <!-- 1. 整体AUM趋势 - 折线图 -->
+            <div class="chart-item">
+                <div class="chart-title">整体AUM趋势</div>
+                <div id="aumChart" class="chart"></div>
+            </div>
+            
+            <!-- 2. 资产构成分析 - 环形图 -->
+            <div class="chart-item">
+                <div class="chart-title">资产构成分析</div>
+                <div id="assetChart" class="chart"></div>
+            </div>
+            
+            <!-- 3. 客户年龄分布 - 柱状图 -->
+            <div class="chart-item">
+                <div class="chart-title">客户年龄分布</div>
+                <div id="ageChart" class="chart"></div>
+            </div>
+            
+            <!-- 4. 客户城市等级分布 - 横向柱状图 -->
+            <div class="chart-item">
+                <div class="chart-title">客户城市等级分布</div>
+                <div id="cityChart" class="chart"></div>
+            </div>
+            
+            <!-- 5. 资产等级分布 - 折线图 -->
+            <div class="chart-item">
+                <div class="chart-title">资产等级分布</div>
+                <div id="assetLevelChart" class="chart"></div>
+            </div>
+            
+            <!-- 6. 产品持有情况 - 柱状图 -->
+            <div class="chart-item">
+                <div class="chart-title">产品持有情况</div>
+                <div id="productChart" class="chart"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 异步获取数据并更新图表
+        async function fetchData(url) {
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return await response.json();
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                return null;
+            }
+        }
+
+        // 初始化整体AUM趋势图表 - 折线图
+        var aumChart = echarts.init(document.getElementById('aumChart'));
+        async function updateAumChart() {
+            const data = await fetchData('/api/aum_trend');
+            if (data) {
+                const months = data.map(item => item.month);
+                const aumValues = data.map(item => parseFloat(item.total_assets.toFixed(2)));
+                
+                aumChart.setOption({
+                    xAxis: {
+                        data: months
+                    },
+                    series: [{
+                        data: aumValues
+                    }]
+                });
+            }
+        }
+
+        // 初始化资产构成图表 - 环形图
+        var assetChart = echarts.init(document.getElementById('assetChart'));
+        async function updateAssetChart() {
+            const data = await fetchData('/api/asset_analysis');
+            if (data) {
+                assetChart.setOption({
+                    series: [{
+                        data: data.asset_composition
+                    }]
+                });
+            }
+        }
+
+        // 初始化客户年龄分布图表 - 柱状图
+        var ageChart = echarts.init(document.getElementById('ageChart'));
+        async function updateAgeChart() {
+            const data = await fetchData('/api/customer_distribution');
+            if (data) {
+                const ageGroups = data.age_dist.map(item => item.age_group);
+                const ageCounts = data.age_dist.map(item => item.count);
+                
+                ageChart.setOption({
+                    xAxis: {
+                        data: ageGroups
+                    },
+                    series: [{
+                        data: ageCounts
+                    }]
+                });
+            }
+        }
+
+        // 初始化客户城市等级分布图表 - 横向柱状图
+        var cityChart = echarts.init(document.getElementById('cityChart'));
+        async function updateCityChart() {
+            const data = await fetchData('/api/customer_distribution');
+            if (data) {
+                const cityLevels = data.city_dist.map(item => item.city_level);
+                const cityCounts = data.city_dist.map(item => item.count);
+                
+                cityChart.setOption({
+                    yAxis: {
+                        data: cityLevels
+                    },
+                    series: [{
+                        data: cityCounts
+                    }]
+                });
+            }
+        }
+
+        // 初始化资产等级分布图表 - 折线图
+        var assetLevelChart = echarts.init(document.getElementById('assetLevelChart'));
+        async function updateAssetLevelChart() {
+            const data = await fetchData('/api/asset_analysis');
+            if (data) {
+                const assetLevels = data.asset_level_dist.map(item => item.asset_level);
+                const assetCounts = data.asset_level_dist.map(item => item.count);
+                
+                assetLevelChart.setOption({
+                    xAxis: {
+                        data: assetLevels
+                    },
+                    series: [{
+                        data: assetCounts
+                    }]
+                });
+            }
+        }
+
+        // 初始化产品持有情况图表 - 柱状图
+        var productChart = echarts.init(document.getElementById('productChart'));
+        async function updateProductChart() {
+            const data = await fetchData('/api/behavior_analysis');
+            if (data) {
+                const productTypes = data.product_holding.map(item => item.product_type);
+                const productCounts = data.product_holding.map(item => item.count);
+                
+                productChart.setOption({
+                    xAxis: {
+                        data: productTypes
+                    },
+                    series: [{
+                        data: productCounts
+                    }]
+                });
+            }
+        }
+
+        // 图表基础配置
+        aumChart.setOption({
+            tooltip: {
+                trigger: 'axis'
+            },
+            legend: {
+                orient: 'horizontal',
+                bottom: 10,
+                data: ['AUM总量']
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '15%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'category',
+                axisLabel: {
+                    rotate: 45
+                }
+            },
+            yAxis: {
+                type: 'value',
+                name: 'AUM总量（万元）',
+                axisLabel: {
+                    formatter: '{value}万'
+                }
+            },
+            series: [{
+                name: 'AUM总量',
+                type: 'line',
+                data: [],
+                smooth: true,
+                itemStyle: {
+                    color: '#5470c6'
+                },
+                lineStyle: {
+                    width: 3
+                },
+                areaStyle: {
+                    color: {
+                        type: 'linear',
+                        x: 0,
+                        y: 0,
+                        x2: 0,
+                        y2: 1,
+                        colorStops: [{ 
+                            offset: 0, color: 'rgba(84, 112, 198, 0.5)' 
+                        }, { 
+                            offset: 1, color: 'rgba(84, 112, 198, 0.1)' 
+                        }]
+                    }
+                }
+            }]
+        });
+
+        assetChart.setOption({
+            tooltip: {
+                trigger: 'item',
+                formatter: '{b}: {c} ({d}%)'
+            },
+            legend: {
+                orient: 'horizontal',
+                bottom: 10,
+                data: ['存款', '理财', '基金', '保险']
+            },
+            series: [{
+                name: '资产构成',
+                type: 'pie',
+                radius: ['40%', '70%'],
+                center: ['50%', '45%'],
+                avoidLabelOverlap: false,
+                itemStyle: {
+                    borderRadius: 10,
+                    borderColor: '#fff',
+                    borderWidth: 2
+                },
+                label: {
+                    show: false
+                },
+                emphasis: {
+                    label: {
+                        show: true,
+                        fontSize: '18',
+                        fontWeight: 'bold'
+                    }
+                },
+                labelLine: {
+                    show: false
+                },
+                data: []
+            }]
+        });
+
+        ageChart.setOption({
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'shadow'
+                }
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '15%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'category',
+                axisLabel: {
+                    rotate: 45
+                }
+            },
+            yAxis: {
+                type: 'value',
+                name: '客户数量'
+            },
+            series: [{
+                name: '客户数量',
+                type: 'bar',
+                data: [],
+                itemStyle: {
+                    color: '#5470c6'
+                }
+            }]
+        });
+
+        cityChart.setOption({
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'shadow'
+                }
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '3%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'value',
+                name: '客户数量'
+            },
+            yAxis: {
+                type: 'category'
+            },
+            series: [{
+                name: '客户数量',
+                type: 'bar',
+                data: [],
+                itemStyle: {
+                    color: '#91cc75'
+                }
+            }]
+        });
+
+        assetLevelChart.setOption({
+            tooltip: {
+                trigger: 'axis'
+            },
+            legend: {
+                orient: 'horizontal',
+                bottom: 10,
+                data: ['客户数量']
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '15%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'category',
+                axisLabel: {
+                    rotate: 45
+                }
+            },
+            yAxis: {
+                type: 'value',
+                name: '客户数量'
+            },
+            series: [{
+                name: '客户数量',
+                type: 'line',
+                data: [],
+                smooth: true,
+                itemStyle: {
+                    color: '#fac858'
+                },
+                lineStyle: {
+                    width: 3
+                },
+                areaStyle: {
+                    color: {
+                        type: 'linear',
+                        x: 0,
+                        y: 0,
+                        x2: 0,
+                        y2: 1,
+                        colorStops: [{
+                            offset: 0, color: 'rgba(250, 200, 88, 0.5)'
+                        }, {
+                            offset: 1, color: 'rgba(250, 200, 88, 0.1)'
+                        }]
+                    }
+                }
+            }]
+        });
+
+        productChart.setOption({
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'shadow'
+                }
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '3%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'category'
+            },
+            yAxis: {
+                type: 'value',
+                name: '持有客户数'
+            },
+            series: [{
+                name: '持有客户数',
+                type: 'bar',
+                data: [],
+                itemStyle: {
+                    color: '#ee6666'
+                }
+            }]
+        });
+
+        // 页面加载完成后更新所有图表
+        document.addEventListener('DOMContentLoaded', function() {
+            updateAumChart();
+            updateAssetChart();
+            updateAgeChart();
+            updateCityChart();
+            updateAssetLevelChart();
+            updateProductChart();
+        });
+
+        // 响应式调整
+        window.addEventListener('resize', function() {
+            aumChart.resize();
+            assetChart.resize();
+            ageChart.resize();
+            cityChart.resize();
+            assetLevelChart.resize();
+            productChart.resize();
+        });
+    </script>
+</body>
+</html>

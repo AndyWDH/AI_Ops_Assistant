@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>潜在高价值客户预测 - 决策树分析报告</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        
+        h2 {
+            color: #34495e;
+            margin: 30px 0 20px;
+            font-size: 1.8em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        
+        h3 {
+            color: #34495e;
+            margin: 20px 0 15px;
+            font-size: 1.4em;
+        }
+        
+        .section {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .metric-card {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .metric-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #3498db;
+        }
+        
+        .metric-label {
+            font-size: 1.1em;
+            color: #666;
+            margin-top: 10px;
+        }
+        
+        .feature-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        .feature-table th, .feature-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        .feature-table th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .feature-table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        .tree-text {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+        
+        .mermaid-container {
+            background-color: white;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+        
+        .chart-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .chart-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .svg-container {
+            width: 100%;
+            height: 400px;
+            margin: 20px 0;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        
+        .insight-box {
+            background-color: #e3f2fd;
+            border-left: 5px solid #2196f3;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        ul {
+            margin-left: 20px;
+            margin-bottom: 20px;
+        }
+        
+        li {
+            margin-bottom: 10px;
+        }
+        
+        pre {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.4.0/dist/mermaid.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>潜在高价值客户预测 - 决策树分析报告</h1>
+        
+        <div class="section">
+            <h2>1. 分析概述</h2>
+            <p>本报告使用决策树模型（max_depth=4）预测客户未来3个月是否能成为高价值客户（资产达到100万+）。</p>
+            
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-value">20,000</div>
+                    <div class="metric-label">训练样本数量</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">20,000</div>
+                    <div class="metric-label">测试样本数量</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">41</div>
+                    <div class="metric-label">特征数量</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">4</div>
+                    <div class="metric-label">决策树深度</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>2. 决策树模型分析</h2>
+            
+            <h3>2.1 决策树可视化</h3>
+            <div class="chart-container">
+                <img src="decision_tree_plot.png" alt="决策树可视化" class="chart-image">
+            </div>
+            
+            <h3>2.2 Mermaid交互式决策树</h3>
+            <div class="mermaid-container">
+                <div class="mermaid">
+                graph TD
+        node0[节点 0<br/>total_assets ≤ 0.555?<br/>基尼系数: 0.273]
+        node0 -->|是| node1
+        node0 -->|否| node14
+        node1[节点 1<br/>total_assets ≤ 0.518?<br/>基尼系数: 0.006]
+        node1 -->|是| node2
+        node1 -->|否| node7
+        node2[节点 2<br/>financial_balance ≤ 1.119?<br/>基尼系数: 0.001]
+        node2 -->|是| node3
+        node2 -->|否| node6
+        node3[节点 3<br/>total_assets ≤ 0.485?<br/>基尼系数: 0.001]
+        node3 -->|是| node4
+        node3 -->|否| node5
+        node4[叶节点 4<br/>类别: 非高价值客户<br/>非高价值概率: 1.000<br/>高价值概率: 0.000]:::非高价值客户Class
+        node5[叶节点 5<br/>类别: 非高价值客户<br/>非高价值概率: 0.915<br/>高价值概率: 0.085]:::非高价值客户Class
+        node6[叶节点 6<br/>类别: 高价值客户<br/>非高价值概率: 0.000<br/>高价值概率: 1.000]:::高价值客户Class
+        node7[节点 7<br/>monthly_income ≤ 1.371?<br/>基尼系数: 0.417]
+        node7 -->|是| node8
+        node7 -->|否| node11
+        node8[节点 8<br/>credit_card_monthly_expense ≤ 2.138?<br/>基尼系数: 0.315]
+        node8 -->|是| node9
+        node8 -->|否| node10
+        node9[叶节点 9<br/>类别: 非高价值客户<br/>非高价值概率: 0.835<br/>高价值概率: 0.165]:::非高价值客户Class
+        node10[叶节点 10<br/>类别: 高价值客户<br/>非高价值概率: 0.000<br/>高价值概率: 1.000]:::高价值客户Class
+        node11[节点 11<br/>lifecycle_stage_价值客户 ≤ 0.500?<br/>基尼系数: 0.308]
+        node11 -->|是| node12
+        node11 -->|否| node13
+        node12[叶节点 12<br/>类别: 高价值客户<br/>非高价值概率: 0.111<br/>高价值概率: 0.889]:::高价值客户Class
+        node13[叶节点 13<br/>类别: 非高价值客户<br/>非高价值概率: 0.667<br/>高价值概率: 0.333]:::非高价值客户Class
+        node14[节点 14<br/>total_assets ≤ 0.592?<br/>基尼系数: 0.024]
+        node14 -->|是| node15
+        node14 -->|否| node22
+        node15[节点 15<br/>monthly_income ≤ 0.613?<br/>基尼系数: 0.423]
+        node15 -->|是| node16
+        node15 -->|否| node19
+        node16[节点 16<br/>monthly_income ≤ -0.477?<br/>基尼系数: 0.499]
+        node16 -->|是| node17
+        node16 -->|否| node18
+        node17[叶节点 17<br/>类别: 非高价值客户<br/>非高价值概率: 0.900<br/>高价值概率: 0.100]:::非高价值客户Class
+        node18[叶节点 18<br/>类别: 高价值客户<br/>非高价值概率: 0.404<br/>高价值概率: 0.596]:::高价值客户Class
+        node19[节点 19<br/>fund_balance ≤ 0.036?<br/>基尼系数: 0.117]
+        node19 -->|是| node20
+        node19 -->|否| node21
+        node20[叶节点 20<br/>类别: 非高价值客户<br/>非高价值概率: 1.000<br/>高价值概率: 0.000]:::非高价值客户Class
+        node21[叶节点 21<br/>类别: 高价值客户<br/>非高价值概率: 0.043<br/>高价值概率: 0.957]:::高价值客户Class
+        node22[节点 22<br/>fund_balance ≤ -0.017?<br/>基尼系数: 0.003]
+        node22 -->|是| node23
+        node22 -->|否| node26
+        node23[节点 23<br/>insurance_balance ≤ 0.515?<br/>基尼系数: 0.211]
+        node23 -->|是| node24
+        node23 -->|否| node25
+        node24[叶节点 24<br/>类别: 非高价值客户<br/>非高价值概率: 0.667<br/>高价值概率: 0.333]:::非高价值客户Class
+        node25[叶节点 25<br/>类别: 高价值客户<br/>非高价值概率: 0.045<br/>高价值概率: 0.955]:::高价值客户Class
+        node26[节点 26<br/>occupation_type_传统行业 ≤ 0.500?<br/>基尼系数: 0.001]
+        node26 -->|是| node27
+        node26 -->|否| node28
+        node27[叶节点 27<br/>类别: 高价值客户<br/>非高价值概率: 0.000<br/>高价值概率: 1.000]:::高价值客户Class
+        node28[叶节点 28<br/>类别: 高价值客户<br/>非高价值概率: 0.250<br/>高价值概率: 0.750]:::高价值客户Class
+    
+    classDef 高价值客户Class fill:#d4edda,stroke:#c3e6cb,stroke-width:2px;
+        classDef 非高价值客户Class fill:#f8d7da,stroke:#f5c6cb,stroke-width:2px;
+
+                </div>
+            </div>
+            
+            <h3>2.3 决策树文本表示</h3>
+            <div class="tree-text">
+            |--- total_assets <= 0.555
+|   |--- total_assets <= 0.518
+|   |   |--- financial_balance <= 1.119
+|   |   |   |--- total_assets <= 0.485
+|   |   |   |   |--- weights: [16513.000, 1.000] class: 0
+|   |   |   |--- total_assets >  0.485
+|   |   |   |   |--- weights: [97.000, 9.000] class: 0
+|   |   |--- financial_balance >  1.119
+|   |   |   |--- weights: [0.000, 1.000] class: 1
+|   |--- total_assets >  0.518
+|   |   |--- monthly_income <= 1.371
+|   |   |   |--- credit_card_monthly_expense <= 2.138
+|   |   |   |   |--- weights: [86.000, 17.000] class: 0
+|   |   |   |--- credit_card_monthly_expense >  2.138
+|   |   |   |   |--- weights: [0.000, 4.000] class: 1
+|   |   |--- monthly_income >  1.371
+|   |   |   |--- lifecycle_stage_价值客户 <= 0.500
+|   |   |   |   |--- weights: [2.000, 16.000] class: 1
+|   |   |   |--- lifecycle_stage_价值客户 >  0.500
+|   |   |   |   |--- weights: [2.000, 1.000] class: 0
+|--- total_assets >  0.555
+|   |--- total_assets <= 0.592
+|   |   |--- monthly_income <= 0.613
+|   |   |   |--- monthly_income <= -0.477
+|   |   |   |   |--- weights: [9.000, 1.000] class: 0
+|   |   |   |--- monthly_income >  -0.477
+|   |   |   |   |--- weights: [23.000, 34.000] class: 1
+|   |   |--- monthly_income >  0.613
+|   |   |   |--- fund_balance <= 0.036
+|   |   |   |   |--- weights: [1.000, 0.000] class: 0
+|   |   |   |--- fund_balance >  0.036
+|   |   |   |   |--- weights: [2.000, 45.000] class: 1
+|   |--- total_assets >  0.592
+|   |   |--- fund_balance <= -0.017
+|   |   |   |--- insurance_balance <= 0.515
+|   |   |   |   |--- weights: [2.000, 1.000] class: 0
+|   |   |   |--- insurance_balance >  0.515
+|   |   |   |   |--- weights: [1.000, 21.000] class: 1
+|   |   |--- fund_balance >  -0.017
+|   |   |   |--- occupation_type_传统行业 <= 0.500
+|   |   |   |   |--- weights: [1.000, 3106.000] class: 1
+|   |   |   |--- occupation_type_传统行业 >  0.500
+|   |   |   |   |--- weights: [1.000, 3.000] class: 1
+
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>3. 特征重要性分析</h2>
+            
+            <h3>3.1 特征重要性排名</h3>
+            <table class="feature-table">
+                <thead>
+                    <tr>
+                        <th>排名</th>
+                        <th>特征名称</th>
+                        <th>重要性分数</th>
+                    </tr>
+                </thead>
+                <tbody>
+                <tr><td>19</td><td>total_assets</td><td>0.9924</td></tr><tr><td>2</td><td>monthly_income</td><td>0.0050</td></tr><tr><td>29</td><td>credit_card_monthly_expense</td><td>0.0010</td></tr><tr><td>22</td><td>fund_balance</td><td>0.0005</td></tr><tr><td>23</td><td>insurance_balance</td><td>0.0004</td></tr><tr><td>21</td><td>financial_balance</td><td>0.0004</td></tr><tr><td>14</td><td>lifecycle_stage_价值客户</td><td>0.0003</td></tr><tr><td>7</td><td>occupation_type_传统行业</td><td>0.0001</td></tr><tr><td>37</td><td>financial_balance_rolling_max</td><td>0.0000</td></tr><tr><td>40</td><td>fund_balance_rolling_max</td><td>0.0000</td></tr>
+                </tbody>
+            </table>
+            
+            <h3>3.2 特征重要性可视化</h3>
+            <div class="svg-container">
+            <svg width="100%" height="100%" viewBox="0 0 1000 400" xmlns="http://www.w3.org/2000/svg">
+<text x="500.0" y="30" font-size="20" text-anchor="middle" font-weight="bold">特征重要性排名</text>
+<line x1="50" y1="350" x2="950" y2="350" stroke="#333" stroke-width="2"/>
+<line x1="50" y1="50" x2="50" y2="350" stroke="#333" stroke-width="2"/>
+<rect x="50.0" y="50.0" width="72.0" height="300.0" fill="#3498db" rx="3" ry="3"/>
+<text x="86.0" y="370" font-size="12" text-anchor="middle" fill="#666">total_assets</text>
+<text x="86.0" y="45.0" font-size="10" text-anchor="middle" font-weight="bold">0.9924</text>
+<rect x="140.0" y="348.4767259707596" width="72.0" height="1.5232740292403995" fill="#3498db" rx="3" ry="3"/>
+<text x="176.0" y="370" font-size="12" text-anchor="middle" fill="#666">monthly_income</text>
+<text x="176.0" y="343.4767259707596" font-size="10" text-anchor="middle" font-weight="bold">0.0050</text>
+<rect x="230.0" y="349.6975206224213" width="72.0" height="0.30247937757869797" fill="#3498db" rx="3" ry="3"/>
+<text x="266.0" y="370" font-size="12" text-anchor="middle" fill="#666">credit_card_monthly_expense</text>
+<text x="266.0" y="344.6975206224213" font-size="10" text-anchor="middle" font-weight="bold">0.0010</text>
+<rect x="320.0" y="349.859042078759" width="72.0" height="0.14095792124101195" fill="#3498db" rx="3" ry="3"/>
+<text x="356.0" y="370" font-size="12" text-anchor="middle" fill="#666">fund_balance</text>
+<text x="356.0" y="344.859042078759" font-size="10" text-anchor="middle" font-weight="bold">0.0005</text>
+<rect x="410.0" y="349.8851995346519" width="72.0" height="0.11480046534809188" fill="#3498db" rx="3" ry="3"/>
+<text x="446.0" y="370" font-size="12" text-anchor="middle" fill="#666">insurance_balance</text>
+<text x="446.0" y="344.8851995346519" font-size="10" text-anchor="middle" font-weight="bold">0.0004</text>
+<rect x="500.0" y="349.8874589467729" width="72.0" height="0.11254105322709235" fill="#3498db" rx="3" ry="3"/>
+<text x="536.0" y="370" font-size="12" text-anchor="middle" fill="#666">financial_balance</text>
+<text x="536.0" y="344.8874589467729" font-size="10" text-anchor="middle" font-weight="bold">0.0004</text>
+<rect x="590.0" y="349.91056874317803" width="72.0" height="0.0894312568219747" fill="#3498db" rx="3" ry="3"/>
+<text x="626.0" y="370" font-size="12" text-anchor="middle" fill="#666">lifecycle_stage_价值客户</text>
+<text x="626.0" y="344.91056874317803" font-size="10" text-anchor="middle" font-weight="bold">0.0003</text>
+<rect x="680.0" y="349.97193777032754" width="72.0" height="0.028062229672474865" fill="#3498db" rx="3" ry="3"/>
+<text x="716.0" y="370" font-size="12" text-anchor="middle" fill="#666">occupation_type_传统行业</text>
+<text x="716.0" y="344.97193777032754" font-size="10" text-anchor="middle" font-weight="bold">0.0001</text>
+<rect x="770.0" y="350.0" width="72.0" height="0.0" fill="#3498db" rx="3" ry="3"/>
+<text x="806.0" y="370" font-size="12" text-anchor="middle" fill="#666">financial_balance_rolling_max</text>
+<text x="806.0" y="345.0" font-size="10" text-anchor="middle" font-weight="bold">0.0000</text>
+<rect x="860.0" y="350.0" width="72.0" height="0.0" fill="#3498db" rx="3" ry="3"/>
+<text x="896.0" y="370" font-size="12" text-anchor="middle" fill="#666">fund_balance_rolling_max</text>
+<text x="896.0" y="345.0" font-size="10" text-anchor="middle" font-weight="bold">0.0000</text>
+</svg>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>4. 潜在高价值客户画像</h2>
+            
+            <h3>4.1 客户特征概览</h3>
+            <div class="mermaid-container">
+                <div class="mermaid">
+                    graph TD
+                        A[潜在高价值客户画像] --> B[资产特征]
+                        A --> C[人口统计特征]
+                        A --> D[行为特征]
+                        A --> E[生命周期特征]
+                        
+                        B --> B1[总资产较高]
+                        B --> B2[金融资产余额高]
+                        B --> B3[存款余额稳定]
+                        B --> B4[保险和基金配置合理]
+                        
+                        C --> C1[月收入水平高]
+                        C --> C2[职业为企业高管/私营业主]
+                        C --> C3[年龄在30-50岁]
+                        C --> C4[已婚]
+                        
+                        D --> D1[投资行为活跃]
+                        D --> D2[产品持有种类多]
+                        D --> D3[APP使用频繁]
+                        
+                        E --> E1[生命周期为忠诚客户]
+                        E --> E2[非成长客户]
+                    
+                    classDef positive fill:#d4edda,stroke:#c3e6cb,stroke-width:2px;
+                    classDef negative fill:#f8d7da,stroke:#f5c6cb,stroke-width:2px;
+                    
+                    class B1,B2,B3,B4,C1,C2,C3,C4,D1,D2,D3,E1 positive;
+                    class E2 negative;
+                </div>
+            </div>
+            
+            <h3>4.2 决策树规则解读</h3>
+            <div class="insight-box">
+                <h4>高价值客户识别规则：</h4>
+                <ul>
+                    <li>当客户总资产较高时，更可能成为高价值客户</li>
+                    <li>金融资产余额是重要的预测指标</li>
+                    <li>职业类型（如企业高管、私营业主）对预测结果有显著影响</li>
+                    <li>客户生命周期阶段（如忠诚客户）是重要的参考因素</li>
+                    <li>投资行为活跃度反映了客户的资产增长潜力</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>5. 营销建议</h2>
+            
+            <ul>
+                <li><strong>重点关注高资产客户</strong>：对总资产接近100万的客户进行重点跟踪和营销</li>
+                <li><strong>差异化营销策略</strong>：根据客户的特征制定个性化的营销方案</li>
+                <li><strong>提升客户粘性</strong>：通过优质服务将成长客户转化为忠诚客户</li>
+                <li><strong>优化产品推荐</strong>：根据客户的资产配置情况推荐合适的金融产品</li>
+                <li><strong>定期监测客户行为</strong>：跟踪客户的投资行为变化，及时调整营销策略</li>
+            </ul>
+        </div>
+    </div>
+    
+    <script>
+        // 初始化Mermaid
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            flowchart: {
+                curve: 'linear'
+            }
+        });
+    </script>
+</body>
+</html>

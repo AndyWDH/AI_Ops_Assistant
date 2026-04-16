@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>特征工程分析</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #3498db;
+            margin: 20px 0 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+        h3 {
+            color: #2980b9;
+            margin: 15px 0 10px;
+        }
+        .section {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .mermaid-container {
+            background: #fafafa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            overflow-x: auto;
+        }
+        .feature-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        .feature-table th,
+        .feature-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        .feature-table th {
+            background-color: #3498db;
+            color: white;
+            font-weight: bold;
+        }
+        .feature-table tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        .feature-table tr:hover {
+            background-color: #e8f4f8;
+        }
+        .svg-container {
+            margin: 20px 0;
+            text-align: center;
+        }
+        .static-feature {
+            color: #27ae60;
+            font-weight: bold;
+        }
+        .dynamic-feature {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        .calculated-feature {
+            color: #f39c12;
+            font-weight: bold;
+        }
+        .target-variable {
+            color: #9b59b6;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>特征工程分析报告</h1>
+        
+        <div class="section">
+            <h2>1. 特征工程流程</h2>
+            <div class="mermaid-container">
+                <pre class="mermaid">
+                    flowchart TD
+                        A[原始数据] --> B[数据预处理]
+                        B --> C[静态特征处理]
+                        B --> D[动态特征处理]
+                        C --> E[特征编码和缩放]
+                        D --> E
+                        E --> F[生成目标变量]
+                        F --> G[保存处理后特征]
+                        
+                        subgraph 数据预处理
+                            B1[合并数据集]
+                            B2[转换日期格式]
+                            B3[提取月份/季度]
+                        end
+                        
+                        subgraph 静态特征处理
+                            C1[选择静态特征]
+                            C2[缺失值填充]
+                        end
+                        
+                        subgraph 动态特征处理
+                            D1[选择动态特征]
+                            D2[缺失值处理]
+                            D3[计算增长指标]
+                            D4[生成滚动特征]
+                        end
+                        
+                        subgraph 特征编码和缩放
+                            E1[数值特征标准化]
+                            E2[类别特征独热编码]
+                        end
+                        
+                        subgraph 生成目标变量
+                            F1[计算未来3个月资产]
+                            F2[标记高价值客户]
+                        end
+                </pre>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>2. 特征分类</h2>
+            
+            <h3>2.1 静态特征</h3>
+            <p>静态特征是指不随时间变化的客户基本信息：</p>
+            <table class="feature-table">
+                <thead>
+                    <tr>
+                        <th>特征名称</th>
+                        <th>特征描述</th>
+                        <th>数据类型</th>
+                        <th>处理方式</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="static-feature">age</td>
+                        <td>客户年龄</td>
+                        <td>数值型</td>
+                        <td>中位数填充缺失值，标准化</td>
+                    </tr>
+                    <tr>
+                        <td class="static-feature">occupation_type</td>
+                        <td>职业类型</td>
+                        <td>类别型</td>
+                        <td>缺失值填"未知"，独热编码</td>
+                    </tr>
+                    <tr>
+                        <td class="static-feature">monthly_income</td>
+                        <td>月收入</td>
+                        <td>数值型</td>
+                        <td>中位数填充缺失值，标准化</td>
+                    </tr>
+                    <tr>
+                        <td class="static-feature">city_level</td>
+                        <td>城市等级</td>
+                        <td>类别型</td>
+                        <td>缺失值填"未知"，独热编码</td>
+                    </tr>
+                    <tr>
+                        <td class="static-feature">marriage_status</td>
+                        <td>婚姻状况</td>
+                        <td>类别型</td>
+                        <td>缺失值填"未知"，独热编码</td>
+                    </tr>
+                    <tr>
+                        <td class="static-feature">lifecycle_stage</td>
+                        <td>生命周期阶段</td>
+                        <td>类别型</td>
+                        <td>缺失值填"未知"，独热编码</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3>2.2 动态特征</h3>
+            <p>动态特征是指随时间变化的客户行为和资产数据：</p>
+            <h4>2.2.1 原始动态特征</h4>
+            <table class="feature-table">
+                <thead>
+                    <tr>
+                        <th>特征名称</th>
+                        <th>特征描述</th>
+                        <th>数据类型</th>
+                        <th>处理方式</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="dynamic-feature">total_assets</td>
+                        <td>总资产</td>
+                        <td>数值型</td>
+                        <td>缺失值填0，标准化</td>
+                    </tr>
+                    <tr>
+                        <td class="dynamic-feature">deposit_balance</td>
+                        <td>存款余额</td>
+                        <td>数值型</td>
+                        <td>缺失值填0，标准化</td>
+                    </tr>
+                    <tr>
+                        <td class="dynamic-feature">financial_balance</td>
+                        <td>理财余额</td>
+                        <td>数值型</td>
+                        <td>缺失值填0，标准化</td>
+                    </tr>
+                    <tr>
+                        <td class="dynamic-feature">fund_balance</td>
+                        <td>基金余额</td>
+                        <td>数值型</td>
+                        <td>缺失值填0，标准化</td>
+                    </tr>
+                    <tr>
+                        <td class="dynamic-feature">insurance_balance</td>
+                        <td>保险余额</td>
+                        <td>数值型</td>
+                        <td>缺失值填0，标准化</td>
+                    </tr>
+                    <tr>
+                        <td class="dynamic-feature">product_count</td>
+                        <td>产品持有数量</td>
+                        <td>数值型</td>
+                        <td>缺失值填0，标准化</td>
+                    </tr>
+                    <tr>
+                        <td class="dynamic-feature">investment_monthly_count</td>
+                        <td>月均投资次数</td>
+                        <td>数值型</td>
+                        <td>缺失值填0，标准化</td>
+                    </tr>
+                    <tr>
+                        <td class="dynamic-feature">app_login_count</td>
+                        <td>APP登录次数</td>
+                        <td>数值型</td>
+                        <td>缺失值填0，标准化</td>
+                    </tr>
+                    <tr>
+                        <td class="dynamic-feature">app_financial_view_time</td>
+                        <td>APP理财浏览时长</td>
+                        <td>数值型</td>
+                        <td>缺失值填0，标准化</td>
+                    </tr>
+                    <tr>
+                        <td class="dynamic-feature">financial_repurchase_count</td>
+                        <td>理财复购次数</td>
+                        <td>数值型</td>
+                        <td>缺失值填0，标准化</td>
+                    </tr>
+                    <tr>
+                        <td class="dynamic-feature">credit_card_monthly_expense</td>
+                        <td>信用卡月支出</td>
+                        <td>数值型</td>
+                        <td>缺失值填0，标准化</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h4>2.2.2 计算生成的动态特征</h4>
+            <table class="feature-table">
+                <thead>
+                    <tr>
+                        <th>特征名称</th>
+                        <th>特征描述</th>
+                        <th>数据类型</th>
+                        <th>计算方式</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="calculated-feature">asset_growth_rate</td>
+                        <td>资产增长率</td>
+                        <td>数值型</td>
+                        <td>与上月总资产相比的增长率</td>
+                    </tr>
+                    <tr>
+                        <td class="calculated-feature">asset_mom_change</td>
+                        <td>资产环比变化</td>
+                        <td>数值型</td>
+                        <td>与上月总资产的差值</td>
+                    </tr>
+                    <tr>
+                        <td class="calculated-feature">asset_cumulative_growth</td>
+                        <td>资产累计增长额</td>
+                        <td>数值型</td>
+                        <td>资产环比变化的累计值</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h4>2.2.3 滚动统计特征（最近3个月）</h4>
+            <table class="feature-table">
+                <thead>
+                    <tr>
+                        <th>特征名称</th>
+                        <th>特征描述</th>
+                        <th>数据类型</th>
+                        <th>计算方式</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="calculated-feature">total_assets_rolling_mean</td>
+                        <td>总资产滚动平均值</td>
+                        <td>数值型</td>
+                        <td>最近3个月总资产平均值</td>
+                    </tr>
+                    <tr>
+                        <td class="calculated-feature">total_assets_rolling_max</td>
+                        <td>总资产滚动最大值</td>
+                        <td>数值型</td>
+                        <td>最近3个月总资产最大值</td>
+                    </tr>
+                    <tr>
+                        <td class="calculated-feature">total_assets_rolling_std</td>
+                        <td>总资产滚动标准差</td>
+                        <td>数值型</td>
+                        <td>最近3个月总资产标准差</td>
+                    </tr>
+                    <tr>
+                        <td class="calculated-feature">financial_balance_rolling_mean</td>
+                        <td>理财余额滚动平均值</td>
+                        <td>数值型</td>
+                        <td>最近3个月理财余额平均值</td>
+                    </tr>
+                    <tr>
+                        <td class="calculated-feature">financial_balance_rolling_max</td>
+                        <td>理财余额滚动最大值</td>
+                        <td>数值型</td>
+                        <td>最近3个月理财余额最大值</td>
+                    </tr>
+                    <tr>
+                        <td class="calculated-feature">financial_balance_rolling_std</td>
+                        <td>理财余额滚动标准差</td>
+                        <td>数值型</td>
+                        <td>最近3个月理财余额标准差</td>
+                    </tr>
+                    <tr>
+                        <td class="calculated-feature">fund_balance_rolling_mean</td>
+                        <td>基金余额滚动平均值</td>
+                        <td>数值型</td>
+                        <td>最近3个月基金余额平均值</td>
+                    </tr>
+                    <tr>
+                        <td class="calculated-feature">fund_balance_rolling_max</td>
+                        <td>基金余额滚动最大值</td>
+                        <td>数值型</td>
+                        <td>最近3个月基金余额最大值</td>
+                    </tr>
+                    <tr>
+                        <td class="calculated-feature">fund_balance_rolling_std</td>
+                        <td>基金余额滚动标准差</td>
+                        <td>数值型</td>
+                        <td>最近3个月基金余额标准差</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="section">
+            <h2>3. 目标变量</h2>
+            <p>目标变量用于标记未来3个月资产能达到100万的高价值客户：</p>
+            <table class="feature-table">
+                <thead>
+                    <tr>
+                        <th>特征名称</th>
+                        <th>特征描述</th>
+                        <th>数据类型</th>
+                        <th>定义</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="target-variable">target_high_value</td>
+                        <td>高价值客户标记</td>
+                        <td>二分类</td>
+                        <td>1: 未来3个月资产≥100万<br>0: 未来3个月资产&lt;100万</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="mermaid-container">
+                <pre class="mermaid">
+                    pie title 目标变量分布
+                        "普通客户": 73849
+                        "高价值客户": 16151
+                </pre>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>4. 特征重要性分析</h2>
+            <p>根据特征工程设计，以下特征对预测高价值客户可能具有较高的重要性：</p>
+            <div class="mermaid-container">
+                <pre class="mermaid">
+                    radarChart
+                    title 特征重要性
+                    xAxis: 静态特征, 动态特征, 计算特征, 滚动特征
+                    yAxis: 低, 中, 高, 极高
+                    data:
+                    {"静态特征": [0.6], "动态特征": [0.9], "计算特征": [0.8], "滚动特征": [0.7]}
+                </pre>
+            </div>
+            
+            <h3>4.1 关键特征说明</h3>
+            <ul>
+                <li><strong>total_assets</strong>：现有总资产是预测未来高价值客户的核心指标</li>
+                <li><strong>asset_growth_rate</strong>：资产增长率反映客户的资产积累能力</li>
+                <li><strong>monthly_income</strong>：月收入是资产增长的主要来源</li>
+                <li><strong>total_assets_rolling_mean</strong>：总资产的滚动平均值反映资产的稳定性</li>
+                <li><strong>financial_balance</strong>：理财余额反映客户的投资意愿和能力</li>
+            </ul>
+        </div>
+        
+        <div class="section">
+            <h2>5. 特征处理效果</h2>
+            <div class="svg-container">
+                <svg width="800" height="300" viewBox="0 0 800 300">
+                    <!-- 背景 -->
+                    <rect width="800" height="300" fill="#f8f9fa" rx="10" ry="10"/>
+                    
+                    <!-- 标题 -->
+                    <text x="400" y="40" font-size="20" font-weight="bold" text-anchor="middle" fill="#3498db">特征处理前后对比</text>
+                    
+                    <!-- 原始特征 -->
+                    <rect x="50" y="100" width="200" height="150" fill="#e74c3c" opacity="0.8" rx="5" ry="5"/>
+                    <text x="150" y="130" font-size="16" font-weight="bold" text-anchor="middle" fill="white">原始特征</text>
+                    <text x="150" y="160" font-size="12" text-anchor="middle" fill="white">120,000条记录</text>
+                    <text x="150" y="180" font-size="12" text-anchor="middle" fill="white">包含缺失值</text>
+                    <text x="150" y="200" font-size="12" text-anchor="middle" fill="white">未标准化</text>
+                    <text x="150" y="220" font-size="12" text-anchor="middle" fill="white">特征维度低</text>
+                    
+                    <!-- 箭头 -->
+                    <path d="M270 175 L330 175" stroke="#3498db" stroke-width="3" fill="none"/>
+                    <polygon points="330,170 340,175 330,180" fill="#3498db"/>
+                    <text x="300" y="160" font-size="14" font-weight="bold" text-anchor="middle" fill="#3498db">特征工程</text>
+                    
+                    <!-- 处理后特征 -->
+                    <rect x="350" y="100" width="200" height="150" fill="#27ae60" opacity="0.8" rx="5" ry="5"/>
+                    <text x="450" y="130" font-size="16" font-weight="bold" text-anchor="middle" fill="white">处理后特征</text>
+                    <text x="450" y="160" font-size="12" text-anchor="middle" fill="white">90,000条记录</text>
+                    <text x="450" y="180" font-size="12" text-anchor="middle" fill="white">无缺失值</text>
+                    <text x="450" y="200" font-size="12" text-anchor="middle" fill="white">标准化处理</text>
+                    <text x="450" y="220" font-size="12" text-anchor="middle" fill="white">特征维度丰富</text>
+                    
+                    <!-- 箭头 -->
+                    <path d="M570 175 L630 175" stroke="#f39c12" stroke-width="3" fill="none"/>
+                    <polygon points="630,170 640,175 630,180" fill="#f39c12"/>
+                    <text x="600" y="160" font-size="14" font-weight="bold" text-anchor="middle" fill="#f39c12">建模预测</text>
+                    
+                    <!-- 预测结果 -->
+                    <rect x="650" y="100" width="100" height="150" fill="#9b59b6" opacity="0.8" rx="5" ry="5"/>
+                    <text x="700" y="130" font-size="16" font-weight="bold" text-anchor="middle" fill="white">预测结果</text>
+                    <text x="700" y="160" font-size="12" text-anchor="middle" fill="white">高价值客户</text>
+                    <text x="700" y="180" font-size="12" text-anchor="middle" fill="white">概率评分</text>
+                    <text x="700" y="200" font-size="12" text-anchor="middle" fill="white">精准营销</text>
+                </svg>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>6. 总结</h2>
+            <p>本特征工程处理流程包含了：</p>
+            <ul>
+                <li>6个静态特征</li>
+                <li>11个原始动态特征</li>
+                <li>3个计算生成的动态特征</li>
+                <li>9个滚动统计特征</li>
+                <li>1个目标变量</li>
+            </ul>
+            <p>处理后的特征文件大小为54.2MB，包含90,000条记录，可直接用于机器学习模型训练。</p>
+        </div>
+    </div>
+    
+    <script>
+        mermaid.initialize({ startOnLoad: true, theme: 'default' });
+    </script>
+</body>
+</html>
